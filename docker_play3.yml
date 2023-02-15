@@ -1,0 +1,20 @@
+---
+- name: implenting docker compose using ansible
+  hosts: all
+  tasks: 
+   - name: creating mysql container
+     docker_container:
+      name: mydb
+      image: mysql
+      env:
+       MYSQL_ROOT_PASSWORD: mafike
+        
+   - name: creating a wordpress container
+     docker_container:
+      name: mywordpess
+      image: wordpress
+      ports:
+       - 8080:80
+      links:
+       - mydb:mysql
+...         

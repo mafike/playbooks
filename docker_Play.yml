@@ -1,0 +1,17 @@
+---
+- name: working on containers
+  hosts: all
+  tasks: 
+   - name: create a tomcat container
+     docker_container:
+      name: webserver
+      image: tomcat
+   - name: stop the tomcat container
+     docker_container:
+      name: webserver
+      state: stopped
+   - name: delete tomcat container
+     docker_container:
+      name: webserver
+      state: absent
+...     
