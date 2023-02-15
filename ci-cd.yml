@@ -1,0 +1,115 @@
+---
+- name: setting up a ci-cd jenkins server and s/w
+  hosts: jenkins
+  tasks:
+   - name: installing required softwares
+     apt:
+      name: "{{item.a}}"
+      state: "{{item.b}}"
+      update_cache: "{{item.c}}"
+     with_items:  
+      - {a: openjdk-11-jdk,b: absent,c: yes}
+      - {a: git,b: present,c: no}
+      - {a: maven,b: absent,c: no}
+   - name: Download jenkins.war
+     get_url:
+      url: https://get.jenkins.io/war-stable/2.375.3/jenkins.war
+      dest: /home/ubuntu
+   - name: start jenkins
+     shell: java -jar jenkins.war &
+- name: setiing up tomcat on prod and qa servers and s/w
+  hosts: server
+  tasks:
+   - name: setting up tomcat 
+     apt:
+      name: "{{item.a}}"
+      state: absent
+      update_cache: "{{item.b}}"
+     with_items:
+      - {a: tomcat9,b: yes}
+      - {a: tomcat9-admin,b: no}
+   - name: copy tomcat-users.xml file
+     copy:
+      src: tomcat-users.xml
+      dest: /etc/tomcat9
+   - name: restart tomcat
+     service:
+      name: tomcat9
+      state: restarted
+
+- name: continous download and build
+  hosts: jenkins
+  tasks:
+   - name: Download the code created by developers
+     git:
+      repo: https://github.com/mafike/maven.git
+      dest: /tmp/mygit
+   - name: create an artifact from the above code
+     shell: cd /tmp/mygit;mvn package
+   - name: Fetch the artifact from jenkins server to controller
+     fetch:
+      src: /tmp/mygit/webapp/target/webapp.war
+      dest: /tmp     
+
+- name: Continous Deployment and Testing
+  hosts: qaserver
+  tasks:
+   - name: Deploy artifact into tomcat on  QaServer
+     copy:
+       src: /tmp/10.0.0.10/tmp/mygit/webapp/target/webapp.war
+       dest: /var/lib/tomcat9/webapps/testapp.war
+   - name: Restart tomcat
+     service:
+       name: tomcat9
+       state: restarted
+   - name: Download the selenium test scripts
+     git:
+       repo: https://github.com/mafike/Functional-Testing.git
+       dest: /tmp/test-git
+   - name: Execute the test scrips
+     shell: java -jar /tmp/test-git/testing.jar     
+
+- name: continous delivery
+  hosts: prodserver
+  tasks:
+   - name: Deploying the artifact into prodserver
+     copy:
+      src:  /tmp/10.0.0.10/tmp/mygit/webapp/target/webapp.war
+      dest: /var/lib/tomcat9/webapps/prodapp.war  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

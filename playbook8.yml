@@ -9,7 +9,7 @@
      with_items:
        - {a: Njia,b: Njia,c: /home/ubuntu/Njia}
        - {a: Ngong,b: Ngong,c: /home/ubuntu/Ngong}
-
+       - {a: Eden,b: Eden,c: /home/Eden}
    - name: copy files into the users home dir
      copy:
       src: "{{item.a}}"
